@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Math: Food Security Optimization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .math-font { font-family: 'Times New Roman', serif; font-style: italic; }
+        #data-tooltip { transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="bg-emerald-800 text-white p-6 rounded-t-2xl shadow-lg">
+            <h1 class="text-2xl md:text-3xl font-bold">Food Security Optimization: Rice Yield vs. Nitrogen</h1>
+            <p class="text-emerald-100 mt-2">SFM Field Application: Analyzing marginal returns in Malaysian Padi cultivation.</p>
+        </header>
+
+        <main class="bg-white p-6 md:p-10 border-x border-b rounded-b-2xl shadow-md space-y-8">
+            
+            <!-- Bioscience Context -->
+            <section class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-emerald-900 border-b-2 border-emerald-100 pb-2">The Bioscience Problem</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        In Malaysia, optimizing <strong>Nitrogen (N)</strong> application is critical for food security. Under-fertilization leads to stunted growth, while over-fertilization results in <em>lodging</em> (falling over) and environmental nitrogen leaching into our waterways.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        As a Food Security student, you use <strong>calculus</strong> to find the peak efficiency. The derivative <span class="math-font">f'(x)</span> represents the <strong>Marginal Yield</strong>—the extra weight of rice gained for every additional kilogram of nitrogen applied.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+                    <h3 class="font-bold text-emerald-800 mb-4 uppercase text-xs tracking-wider">The Mathematical Model</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-sm text-emerald-600 font-semibold mb-1">Yield Function f(x):</p>
+                            <p class="text-2xl math-font">f(x) = -0.00015x² + 0.045x + 3.5</p>
+                            <p class="text-xs text-gray-500 mt-1">where x = Nitrogen (kg/ha), f(x) = Yield (Tons/ha)</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-emerald-600 font-semibold mb-1">First Derivative f'(x):</p>
+                            <p class="text-2xl math-font text-blue-600">f'(x) = -0.0003x + 0.045</p>
+                            <p class="text-xs text-gray-500 mt-1">Represents: Rate of yield change per kg of N.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Chart Area -->
+            <section class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Growth Response Curve</h2>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Interactive: Click on the curve</span>
+                </div>
+                
+                <div class="relative bg-gray-50 p-4 rounded-xl border border-gray-200 h-[400px]">
+                    <canvas id="yieldChart"></canvas>
+                    
+                    <!-- Floating Data Panel -->
+                    <div id="data-tooltip" class="hidden absolute top-4 right-4 w-64 bg-white shadow-xl border border-emerald-200 rounded-lg p-4 z-10">
+                        <div class="flex justify-between items-start mb-2">
+                            <span id="label-x" class="text-xs font-bold text-gray-500">NITROGEN INPUT</span>
+                            <span id="val-x" class="text-sm font-bold text-emerald-700">--</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="p-2 bg-emerald-50 rounded">
+                                <p class="text-[10px] uppercase text-emerald-600 font-bold">Total Yield f(x)</p>
+                                <p id="val-fx" class="text-lg font-bold">--</p>
+                            </div>
+                            <div class="p-2 bg-blue-50 rounded">
+                                <p class="text-[10px] uppercase text-blue-600 font-bold">Rate of Change f'(x)</p>
+                                <p id="val-dfx" class="text-lg font-bold text-blue-700">--</p>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100 italic text-xs text-gray-600" id="layman-explanation">
+                                Select a point to see the bioscience analysis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Malaysian Data Sources -->
+            <footer class="bg-gray-100 p-4 rounded-xl text-sm text-gray-600">
+                <p class="font-semibold mb-1">Realistic Data References (Malaysia Context):</p>
+                <ul class="list-disc ml-5 space-y-1">
+                    <li><em>MARDI (Malaysian Agricultural Research and Development Institute)</em> - Rice Productivity Manual</li>
+                    <li><em>Department of Agriculture (DOA) Malaysia</em> - Fertilizer Recommendation Guide for Padi (Semenanjung)</li>
+                    <li>Modeled yield values (3.5 - 7.0 Tons/ha) reflect high-yielding varieties like <strong>MR219</strong> and <strong>MR297</strong>.</li>
+                </ul>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('yieldChart').getContext('2d');
+        const tooltip = document.getElementById('data-tooltip');
+        
+        // Mathematical constants for the yield function: f(x) = ax^2 + bx + c
+        const a = -0.00015;
+        const b = 0.045;
+        const c = 3.5;
+
+        // Generate data points for Nitrogen levels 0 to 200 kg/ha
+        const labels = [];
+        const yieldData = [];
+        for (let x = 0; x <= 200; x += 5) {
+            labels.push(x);
+            const fx = (a * Math.pow(x, 2)) + (b * x) + c;
+            yieldData.push(fx.toFixed(3));
+        }
+
+        const yieldChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Yield (Tons per Hectare)',
+                    data: yieldData,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: { 
+                        title: { display: true, text: 'Nitrogen Applied (kg/ha)', color: '#065f46' },
+                        grid: { display: false }
+                    },
+                    y: { 
+                        title: { display: true, text: 'Rice Yield (Tons/ha)', color: '#065f46' },
+                        suggestedMin: 3
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false } // We use our custom tooltip
+                },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const x = labels[index];
+                        updateCalculations(x);
+                    }
+                }
+            }
+        });
+
+        function updateCalculations(x) {
+            // Function f(x)
+            const fx = (a * Math.pow(x, 2)) + (b * x) + c;
+            
+            // Derivative f'(x) = 2ax + b
+            const dfx = (2 * a * x) + b;
+
+            // Update UI
+            tooltip.classList.remove('hidden');
+            document.getElementById('val-x').innerText = x + " kg/ha";
+            document.getElementById('val-fx').innerText = fx.toFixed(2) + " t/ha";
+            document.getElementById('val-dfx').innerText = dfx.toFixed(4);
+
+            const explanation = document.getElementById('layman-explanation');
+            
+            if (dfx > 0.02) {
+                explanation.innerHTML = "<strong>Highly Efficient:</strong> The plant is absorbing nitrogen well. Every 1kg of N is giving you a significant yield boost.";
+                explanation.className = "pt-2 border-t border-gray-100 italic text-xs text-emerald-700";
+            } else if (dfx > 0) {
+                explanation.innerHTML = "<strong>Diminishing Returns:</strong> Yield is still increasing, but each extra kg of N gives less profit. You are approaching the biological limit.";
+                explanation.className = "pt-2 border-t border-gray-100 italic text-xs text-amber-700";
+            } else if (dfx <= 0) {
+                explanation.innerHTML = "<strong>Over-Saturation:</strong> The rate is zero or negative. Adding more fertilizer is now wasting money and potentially causing 'lodging' or water pollution.";
+                explanation.className = "pt-2 border-t border-gray-100 italic text-xs text-red-700";
+            }
+        }
+
+        window.onload = function() {
+            // Initial view
+            updateCalculations(150);
+        };
+    </script>
+</body>
+</html>
