@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SFP Project: Watermelon Ripening Derivative</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; padding: 40px; color: #064e3b; }
+        .box { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h1 { color: #059669; font-size: 1.5rem; text-align: center; }
+        .formula { background: #ecfdf5; padding: 10px; border-radius: 8px; font-family: monospace; text-align: center; margin: 20px 0; font-weight: bold; }
+        #output { margin-top: 25px; padding: 20px; border-radius: 12px; background: #f9fafb; border: 1px solid #d1d5db; line-height: 1.5; }
+        canvas { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>🍉 Watermelon Sweetness Analyzer</h1>
+    <p style="text-align: center; font-size: 0.9rem;">Click the green line to calculate the <strong>Rate of Sweetening</strong>.</p>
+
+    <div class="formula">
+        Sugar Speed f'(x) = Δ Sweetness / Δ Day
+    </div>
+
+    <canvas id="brixChart"></canvas>
+
+    <div id="output">
+        <strong>Analysis Result:</strong> <br>
+        Click a data point on the chart to see the derivative calculation and agro-tech insight.
+    </div>
+</div>
+
+<script>
+    const days = [0, 10, 20, 25, 30, 35, 40, 45];
+    const brix = [2.0, 3.5, 7.0, 9.5, 12.0, 13.5, 14.2, 14.5]; // Cumulative sugar
+
+    const ctx = document.getElementById('brixChart').getContext('2d');
+    const brixChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'Sugar Level (Brix %)',
+                data: brix,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                pointRadius: 6,
+                fill: true,
+                tension: 0.2
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { title: { display: true, text: 'Sweetness (Brix %)' } },
+                x: { title: { display: true, text: 'Days from Fruit Set' } }
+            },
+            onClick: (e) => {
+                const activePoints = brixChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                if (activePoints.length) {
+                    const idx = activePoints[0].index;
+                    const d = days[idx];
+                    const s = brix[idx];
+                    
+                    // Simple Derivative: (Current - Previous) / Time Gap
+                    let rate = idx === 0 ? 0 : (brix[idx] - brix[idx-1]) / (days[idx] - days[idx-1]);
+                    
+                    let msg = "";
+                    if (rate > 0.4) msg = "<strong>Peak Synthesis!</strong> The plant is working hard. The derivative is high!";
+                    else if (d >= 40) msg = "<strong>Harvest Ready.</strong> The derivative is near zero; sugar gain has stopped.";
+                    else msg = "<strong>Growth Phase.</strong> Developing size, not yet focusing on sugar.";
+
+                    document.getElementById('output').innerHTML = `
+                        <strong>Day ${d}:</strong> Sugar is ${s}%. <br>
+                        <strong>Derivative f'(x):</strong> ${rate.toFixed(2)} Brix/Day (Speed). <br>
+                        <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
+                        <em>Insight: ${msg}</em>
+                    `;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
